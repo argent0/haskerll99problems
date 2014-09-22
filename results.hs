@@ -36,7 +36,10 @@ compress (x:xs)
 	| otherwise = ( x:(compress xs))
 	where next = xs !! 0
 
---	True -> compress xs
---	False -> x:(compress xs)
---	where
---next = fst xs 
+-- 9
+-- Pack consecutive duplicates of list elements into sublists. If a list
+-- contains repeated elements they should be placed in separate sublists.
+
+pack :: (Eq a) => [a] -> [[a]]
+pack [x] = [[x]]
+pack (x:xs) = (x:(takeWhile (== x) xs)):(pack (dropWhile (== x) xs))
