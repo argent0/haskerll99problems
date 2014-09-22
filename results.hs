@@ -17,3 +17,10 @@ isPalindrome :: (Eq a) => [a] -> Bool
 isPalindrome [] = True
 isPalindrome [x] = True
 isPalindrome (x:xs) = (x == last xs) && (isPalindrome $ init xs)
+
+--7
+data NestedList a = Elem a | List [NestedList a] deriving Show
+flatten :: NestedList a -> [a]
+flatten (Elem a) = [a]
+flatten (List []) = []
+flatten (List (x:xs)) = flatten x ++ (flatten (List xs))
