@@ -114,3 +114,21 @@ encodeDirect (x:xs)
 
 dupli :: [a] -> [a]
 dupli a = foldr (++) [] (map (replicate 2) a)
+
+-- 15
+-- (**) Replicate the elements of a list a given number of times.
+
+repli :: [a] -> Int -> [a]
+repli a n = foldr (++) [] (map (replicate n) a)
+
+--6 Problem 16
+--(**) Drop every N'th element from a list.
+--
+--Example in Haskell:
+--
+-- Main> dropEvery "abcdefghik" 3
+--"abdeghk"
+
+dropEvery :: [a] -> Int -> [a]
+dropEvery [] n = []
+dropEvery (x:xs) n = (take (n - 1) (x:xs)) ++ (dropEvery (drop n (x:xs)) n)
