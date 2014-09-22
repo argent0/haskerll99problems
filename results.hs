@@ -53,3 +53,19 @@ pack (x:xs) = (x:(takeWhile (== x) xs)):(pack (dropWhile (== x) xs))
 
 encode :: (Eq a) => [a] -> [(Int, a)]
 encode x = map (\ v -> (length v, v !! 0)) (pack x)
+
+-- 11
+-- (*) Modified run-length encoding.
+--
+-- Modify the result of problem 10 in such a way that if an element has no
+-- duplicates it is simply copied into the result list. Only elements with
+-- duplicates are transferred as (N E) lists.
+
+data EncodeSymbol a = Single a | Multiple Int a deriving Show
+encode_modified :: (Eq a) => [a] -> [EncodeSymbol a]
+encode_modified x = map encoder (pack x)
+	where
+		encoder [x] = Single x
+		encoder (x:xs) = Multiple (length (x:xs)) x
+		
+
