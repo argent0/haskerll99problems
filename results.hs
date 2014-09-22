@@ -132,3 +132,26 @@ repli a n = foldr (++) [] (map (replicate n) a)
 dropEvery :: [a] -> Int -> [a]
 dropEvery [] n = []
 dropEvery (x:xs) n = (take (n - 1) (x:xs)) ++ (dropEvery (drop n (x:xs)) n)
+
+-- Problem 17
+-- (*) Split a list into two parts; the length of the first part is given.
+--
+-- Do not use any predefined predicates.
+--
+-- Example in Haskell:
+--
+-- *Main> split "abcdefghik" 3
+-- ("abc", "defghik")
+
+split :: [a] -> Int -> ([a], [a])
+split [] n = ([], [])
+split (x:xs) n =
+	iter ([], n, (x:xs))
+	where
+		iter (acc, n, []) = (acc, [])
+		iter (acc, n, (x:xs))
+			| ((clength acc) < n) = iter ((acc ++ [x]), n, xs)
+			| otherwise = (acc, (x:xs))
+			where
+				clength [] = 0
+				clength (x:xs) = 1 + (clength xs)
