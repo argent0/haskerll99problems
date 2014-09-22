@@ -69,3 +69,35 @@ encode_modified x = map encoder (pack x)
 		encoder (x:xs) = Multiple (length (x:xs)) x
 		
 
+-- 12
+-- (**) Decode a run-length encoded list.
+--
+-- Given a run-length code list generated as specified in problem 11. Construct
+-- its uncompressed version
+--
+--Example in Haskell:
+--
+--P12> decodeModified 
+--       [Multiple 4 'a',Single 'b',Multiple 2 'c',
+--       Multiple 2 'a',Single 'd',Multiple 4 'e']
+--"aaaabccaadeeee"
+
+decodeModified :: [EncodeSymbol a] -> [a]
+decodeModified x = foldr (++) [] (map decoder x)
+	where
+		decoder (Single a) = [a]
+		decoder (Multiple n a) = replicate n a
+
+--3 Problem 13
+--(**) Run-length encoding of a list (direct solution).
+--
+--Implement the so-called run-length encoding data compression method directly.
+--I.e. don't explicitly create the sublists containing the duplicates, as in
+--problem 9, but only count them. As in problem P11, simplify the result list by
+--replacing the singleton lists (1 X) by X.
+--
+--Example in Haskell:
+--
+--P13> encodeDirect "aaaabccaadeeee"
+--[Multiple 4 'a',Single 'b',Multiple 2 'c',
+-- Multiple 2 'a',Single 'd',Multiple 4 'e']
