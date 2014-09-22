@@ -155,3 +155,27 @@ split (x:xs) n =
 			where
 				clength [] = 0
 				clength (x:xs) = 1 + (clength xs)
+
+
+--8 Problem 18
+--(**) Extract a slice from a list.
+--
+--Given two indices, i and k, the slice is the list containing the elements
+--between the i'th and k'th element of the original list (both limits included).
+--Start counting the elements with 1.
+--
+--Example in Haskell:
+--
+--Main> slice ['a','b','c','d','e','f','g','h','i','k'] 3 7
+--"cdefg"
+
+slice :: [a] -> Int -> Int -> [a]
+slice (x:xs) start end = takeN len $ dropN (start - 1) (x:xs)
+	where
+		len = end - start + 1
+		dropN n [] = []
+		dropN 0 (x:xs) = x:xs
+		dropN n (x:xs) = dropN (n - 1) xs 
+		takeN n [] = []
+		takeN 0 (x:xs) = []
+		takeN n (x:xs) = [x] ++ (takeN (n - 1) xs)
