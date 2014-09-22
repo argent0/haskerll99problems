@@ -24,3 +24,19 @@ flatten :: NestedList a -> [a]
 flatten (Elem a) = [a]
 flatten (List []) = []
 flatten (List (x:xs)) = flatten x ++ (flatten (List xs))
+
+-- 8
+-- Eliminate consecutive duplicates of list elements
+
+compress :: (Eq a) => [a] -> [a]
+compress [] = []
+compress [x] = [x]
+compress (x:xs)
+	| (x==next) = compress xs
+	| otherwise = ( x:(compress xs))
+	where next = xs !! 0
+
+--	True -> compress xs
+--	False -> x:(compress xs)
+--	where
+--next = fst xs 
