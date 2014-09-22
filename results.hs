@@ -108,3 +108,9 @@ encodeDirect (x:xs)
 	| (len==1) = (Single x):(encodeDirect xs)
 	| otherwise = (Multiple len x):(encodeDirect $ dropWhile (==x) xs)
 	where len = (+1) $ length $ takeWhile (==x) xs
+
+-- 14
+-- Duplicate the elements of a list.
+
+dupli :: [a] -> [a]
+dupli a = foldr (++) [] (map (replicate 2) a)
