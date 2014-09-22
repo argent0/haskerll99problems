@@ -101,3 +101,10 @@ decodeModified x = foldr (++) [] (map decoder x)
 --P13> encodeDirect "aaaabccaadeeee"
 --[Multiple 4 'a',Single 'b',Multiple 2 'c',
 -- Multiple 2 'a',Single 'd',Multiple 4 'e']
+
+encodeDirect :: (Eq a) => [a] -> [EncodeSymbol a]
+encodeDirect [] = []
+encodeDirect (x:xs) 
+	| (len==1) = (Single x):(encodeDirect xs)
+	| otherwise = (Multiple len x):(encodeDirect $ dropWhile (==x) xs)
+	where len = (+1) $ length $ takeWhile (==x) xs
