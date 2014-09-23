@@ -294,29 +294,20 @@ range start end
 -- > combinations 3 "abcdef"
 -- ["abc","abd","abe",...]
 
+-- Using ord constrain
 --combinations :: (Ord a) => Int -> [a] -> [[a]]
 --combinations n [] = []
 --combinations 0 (x:xs) = []
 --combinations 1 (x:xs) = map (:[]) (x:xs)
 --combinations n (x:xs) = [x:y | x <- (x:xs), y <- (combinations (n - 1)  (filter (> x) xs))]
 
+-- Using Eq constrain
+-- requieres that elements don't repeat in the input list
 combinations :: (Eq a) => Int -> [a] -> [[a]]
 combinations n [] =	[]
 combinations 0 (x:xs) =	[]
-combinations n (x:xs) =	[h:y | h <- (x:xs), y <- (subset_combintaions h xs)]
+combinations 1 (x:xs) = map (:[]) (x:xs)
+combinations n (x:xs) =	[h:y | h <- (x:xs), y <- (combinations (n-1) (coset h (x:xs)))]
 	where
-	subset_combintaions h (x:xs)= combinations (n - 1) (remove_used h (x:xs))
-	remove_used h (x:xs) = remove (takeWhile (/=h) (x:xs)) (x:xs)
+	coset h (x:xs) = remove (h:(takeWhile (/=h) (x:xs))) (x:xs)
 	remove list = foldl (.) (filter (\x -> True)) [filter (/=x) | x <- list]
-
---	helper [x] n (x:xs)
---	where
---		helper (f:fs) n [] = []
---		helper (f:fs) 0 (x:xs) = []
---		helper (f:fs) 1 (x:xs) = map (:[]) (x:xs)
---		helper (f:fs) n (x:xs) = [h:y | h <- (x:xs), y <- (subset_combintaions x)]
---			where
---				subset_combintaions h = helper (h:(f:fs)) (n - 1) (remove_used xs)
---				remove_used = remove (f:fs)
---				remove list = foldl (.) (filter (\x -> True)) [filter (/=x) | x <- list]
--- let f = foldl (.) (filter (\x -> True)) [filter (/=x) | x <- [1,2]]
