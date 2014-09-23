@@ -179,3 +179,98 @@ slice (x:xs) start end = takeN len $ dropN (start - 1) (x:xs)
 		takeN n [] = []
 		takeN 0 (x:xs) = []
 		takeN n (x:xs) = [x] ++ (takeN (n - 1) xs)
+
+-- 9 Problem 19
+-- (**) Rotate a list N places to the left.
+--
+-- Hint: Use the predefined functions length and (++).
+--
+-- Examples:
+--
+-- * (rotate '(a b c d e f g h) 3)
+-- (D E F G H A B C)
+--
+-- * (rotate '(a b c d e f g h) -2)
+-- (G H A B C D E F)
+-- Examples in Haskell:
+--
+-- *Main> rotate ['a','b','c','d','e','f','g','h'] 3
+-- "defghabc"
+--  
+--  *Main> rotate ['a','b','c','d','e','f','g','h'] (-2)
+--  "ghabcdef"
+--
+
+rotate :: [a] -> Int -> [a]
+rotate (x:xs) n 
+	| n >= 0 = dropN rotation (x:xs) ++ takeN rotation (x:xs)
+	| otherwise = dropN (len - rotation) (x:xs) ++ takeN (len - rotation) (x:xs)
+	where
+		len = (length (x:xs))
+		rotation = mod (abs n) len
+		dropN n [] = []
+		dropN 0 (x:xs) = x:xs
+		dropN n (x:xs) = dropN (n - 1) xs 
+		takeN n [] = []
+		takeN 0 (x:xs) = []
+		takeN n (x:xs) = [x] ++ (takeN (n - 1) xs)
+
+-- Problem 20
+-- (*) Remove the K'th element from a list.
+--
+-- Example in Prolog:
+--
+-- ?- remove_at(X,[a,b,c,d],2,R).
+-- X = b
+-- R = [a,c,d]
+-- Example in Lisp:
+--
+-- * (remove-at '(a b c d) 2)
+-- (A C D)
+-- (Note that this only returns the residue list, while the Prolog version also
+-- returns the deleted element.)
+--
+-- Example in Haskell:
+--
+-- *Main> removeAt 2 "abcd"
+-- ('b',"acd")
+
+removeAt :: Int -> [a] -> (Maybe a, [a])
+removeAt n [] = (Nothing, [])
+removeAt n (x:xs) =
+		( return ((x:xs) !! (n - 1)) , ((init h)++ t))
+		where
+			(h,t) = (splitAt n (x:xs))
+
+-- 1 Problem 21
+-- Insert an element at a given position into a list.
+--
+-- Example:
+--
+-- * (insert-at 'alfa '(a b c d) 2)
+-- (A ALFA B C D)
+-- Example in Haskell:
+--
+-- P21> insertAt 'X' "abcd" 2
+-- "aXbcd"
+
+insertAt :: a -> [a] -> Int -> [a]
+insertAt a (x:xs) n = (take (n - 1) (x:xs))  ++ (a:(drop (n - 1) (x:xs)))
+
+-- 2 Problem 22
+-- Create a list containing all integers within a given range.
+--
+-- Example:
+--
+-- * (range 4 9)
+-- (4 5 6 7 8 9)
+-- Example in Haskell:
+--
+-- Prelude> range 4 9
+-- [4,5,6,7,8,9]
+--
+range :: Int -> Int -> [Int]
+range start end
+	| len == 0 = [start]
+	| len > 0 = start:(range (start + 1) end)
+	where len = end - start
