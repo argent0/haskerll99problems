@@ -303,11 +303,21 @@ range start end
 
 -- Using Eq constrain
 -- requieres that elements don't repeat in the input list
+-- combinations :: (Eq a) => Int -> [a] -> [[a]]
+-- combinations n [] =	[]
+-- combinations 0 (x:xs) =	[]
+-- combinations 1 (x:xs) = map (:[]) (x:xs)
+-- combinations n (x:xs) =	[h:y | h <- (x:xs), y <- (combinations (n-1) (coset h (x:xs)))]
+-- 	where
+-- 	coset h (x:xs) = remove (h:(takeWhile (/=h) (x:xs))) (x:xs)
+-- 	remove list = foldl (.) (filter (\x -> True)) [filter (/=x) | x <- list]
+
+-- Using Eq constrain
+-- requieres that elements can be Eq but should not be next to each other
 combinations :: (Eq a) => Int -> [a] -> [[a]]
 combinations n [] =	[]
 combinations 0 (x:xs) =	[]
 combinations 1 (x:xs) = map (:[]) (x:xs)
 combinations n (x:xs) =	[h:y | h <- (x:xs), y <- (combinations (n-1) (coset h (x:xs)))]
 	where
-	coset h (x:xs) = remove (h:(takeWhile (/=h) (x:xs))) (x:xs)
-	remove list = foldl (.) (filter (\x -> True)) [filter (/=x) | x <- list]
+	coset h (x:xs) = tail (dropWhile (/=h) (x:xs))
