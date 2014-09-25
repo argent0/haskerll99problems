@@ -321,3 +321,57 @@ combinations 1 (x:xs) = map (:[]) (x:xs)
 combinations n (x:xs) =	[h:y | h <- (x:xs), y <- (combinations (n-1) (coset h (x:xs)))]
 	where
 	coset h (x:xs) = tail (dropWhile (/=h) (x:xs))
+
+-- 7 Problem 27
+-- Group the elements of a set into disjoint subsets.
+--
+-- a) In how many ways can a group of 9 people work in 3 disjoint subgroups of
+-- 2, 3 and 4 persons? Write a function that generates all the possibilities and
+-- returns them in a list.
+--
+-- Example:
+--
+-- * (group3 '(aldo beat carla david evi flip gary hugo ida))
+-- ( ( (ALDO BEAT) (CARLA DAVID EVI) (FLIP GARY HUGO IDA) )
+-- ... )
+-- b) Generalize the above predicate in a way that we can specify a list of
+-- group sizes and the predicate will return a list of groups.
+--
+-- Example:
+--
+-- * (group '(aldo beat carla david evi flip gary hugo ida) '(2 2 5))
+-- ( ( (ALDO BEAT) (CARLA DAVID) (EVI FLIP GARY HUGO IDA) )
+-- ... )
+-- Note that we do not want permutations of the group members; i.e. ((ALDO BEAT)
+-- ...) is the same solution as ((BEAT ALDO) ...). However, we make a difference
+-- between ((ALDO BEAT) (CARLA DAVID) ...) and ((CARLA DAVID) (ALDO BEAT) ...).
+--
+-- You may find more about this combinatorial problem in a good book on discrete
+-- mathematics under the term "multinomial coefficients".
+--
+-- Example in Haskell:
+--
+-- P27> group [2,3,4]
+-- ["aldo","beat","carla","david","evi","flip","gary","hugo","ida"]
+-- [[["aldo","beat"],["carla","david","evi"],["flip","gary","hugo","ida"]],...]
+-- (altogether 1260 solutions)
+--  
+--  27> group [2,2,5]
+--  ["aldo","beat","carla","david","evi","flip","gary","hugo","ida"]
+--  [[["aldo","beat"],["carla","david"],["evi","flip","gary","hugo","ida"]],...]
+--  (altogether 756 solutions)
+--
+
+group :: (Eq a) => [Int] -> [a] -> [[[a]]]
+group [] x = []
+group (g:gs) (i:is)
+	| is_posible =  distribute (g:gs) (i:is)
+	| otherwise = error "Es ist nich mochlich"
+	where
+	is_posible = (<=) (sum (g:gs)) (length (i:is))
+	sum (x:xs) = foldr (+) 0 (x:xs)
+	distribute [g] (i:is) = map (:[]) (combinations g (i:is))
+	distribute (g:gs) (i:is) = [[x] ++ y | x <- (combinations g (i:is)), y <- (distribute gs (filter (\ e -> not (elem e x)) (i:is))) ] --map (:[]) (combinations g (i:is))
+	solve_element k (1:gs) (i:is) = map ([[k]]++) (distribute gs (remove_item k (i:is)))
+	remove_item k (x:xs) = (takeWhile (/= k) (x:xs)) ++ (tail (dropWhile (/= k) (x:xs)))
+
