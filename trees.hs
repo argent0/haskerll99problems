@@ -26,20 +26,22 @@ leaf a = Branch a Empty Empty
 --
 cbbt :: Int -> a -> [Tree a]
 cbbt 0 a = [Empty]
-cbbt n a = if (n<0) then undefined else
-   if (even (n-1))
-      then zipWith b (cbbt half a) (cbbt half a)
-      else (zipWith b (htree ++ htree) (cbbt (half+r) a)) ++ (zipWith b (cbbt (half+r) a) (htree ++ htree))
-   where
-   b = Branch a
-   half = div (n-1) 2
-   r = rem (n-1) 2
-   htree = cbbt half a
+cbbt n a
+   | n < 0 = undefined
+   | otherwise  =
+      if even (n-1)
+         then zipWith b (cbbt half a) (cbbt half a)
+         else zipWith b (htree ++ htree) (cbbt (half+r) a) ++ zipWith b (cbbt (half+r) a) (htree ++ htree)
+      where
+      b = Branch a
+      half = div (n-1) 2
+      r = rem (n-1) 2
+      htree = cbbt half a
 
 isCbbt :: Tree a -> Bool
 isCbbt Empty = True
 isCbbt (Branch _ Empty Empty) = True
-isCbbt t@(Branch _ l r) = (almosEqual) && (isCbbt l) && (isCbbt r)
+isCbbt t@(Branch _ l r) = almosEqual && isCbbt l && isCbbt r
    where
    almosEqual = abs(ll-lr) <= 1
    ll = length (toList l)
@@ -73,6 +75,14 @@ sameStructure (Branch _ Empty _) (Branch _ _ Empty) = False
 sameStructure (Branch _ _ Empty) (Branch _ Empty _) = False
 sameStructure (Branch _ Empty r) (Branch _ Empty rr) = sameStructure r rr
 sameStructure (Branch _ l Empty) (Branch _ ll Empty) = sameStructure l ll
-sameStructure (Branch _ l r) (Branch _ ll rr) = (sameStructure l ll) && (sameStructure r rr)
+sameStructure (Branch _ l r) (Branch _ ll rr) = sameStructure l ll && sameStructure r rr
 
+mirrorImage :: Tree a -> Tree a
+mirrorImage Empty = Empty
+mirrorImage b@(Branch _ Empty Empty) = b
+mirrorImage (Branch x l r) = Branch x (mirrorImage r) (mirrorImage l)
+
+symmetric :: Tree a -> Bool
+symmetric Empty = True
+symmetric (Branch _ l r) = sameStructure l (mirrorImage r)
 -- vim: expandtab
