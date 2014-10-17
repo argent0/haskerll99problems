@@ -1,9 +1,11 @@
+module Trees where
+
 import Data.Foldable
 
 data Tree a = Empty | Branch a (Tree a) (Tree a) deriving Show
 
 instance Foldable Tree  where
-   foldr f z Empty = z
+   foldr _ z Empty = z
    foldr f z (Branch x Empty Empty) = f x z
    foldr f z (Branch k l r) = Data.Foldable.foldr f (f k (Data.Foldable.foldr f z r)) l
 
@@ -25,7 +27,7 @@ leaf a = Branch a Empty Empty
 --
 --
 cbbt :: Int -> a -> [Tree a]
-cbbt 0 a = [Empty]
+cbbt 0 _ = [Empty]
 cbbt n a
    | n < 0 = undefined
    | otherwise  =
@@ -41,7 +43,7 @@ cbbt n a
 isCbbt :: Tree a -> Bool
 isCbbt Empty = True
 isCbbt (Branch _ Empty Empty) = True
-isCbbt t@(Branch _ l r) = almosEqual && isCbbt l && isCbbt r
+isCbbt (Branch _ l r) = almosEqual && isCbbt l && isCbbt r
    where
    almosEqual = abs(ll-lr) <= 1
    ll = length (toList l)
@@ -85,4 +87,6 @@ mirrorImage (Branch x l r) = Branch x (mirrorImage r) (mirrorImage l)
 symmetric :: Tree a -> Bool
 symmetric Empty = True
 symmetric (Branch _ l r) = sameStructure l (mirrorImage r)
+
+
 -- vim: expandtab
