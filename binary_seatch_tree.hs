@@ -1,4 +1,4 @@
-module Main where
+module Trees where
 -- 5 Problem 57
 -- (**) Binary search trees (dictionaries)
 --
@@ -29,12 +29,22 @@ module Main where
 
 import Data.Foldable
 
-data Tree a = Empty | Leaf a | Branch a (Tree a) (Tree a) deriving Show
+data Tree a = Empty | Leaf a | Branch a (Tree a) (Tree a)
 
 instance Foldable Tree  where
    foldr _ z Empty = z
    foldr f z (Leaf x) = f x z
    foldr f z (Branch k l r) = Data.Foldable.foldr f (f k (Data.Foldable.foldr f z r)) l
+
+instance Show a => Show (Tree a) where
+   show t = "\n" ++ go 0 t
+      where
+      go pad Empty = replicate pad ' ' ++ "Empty"
+      go pad (Leaf v) = replicate pad ' ' ++ "Leaf  " ++ show v
+      go pad (Branch v l r) =
+         replicate pad ' ' ++ "Branch  " ++ show v ++ "\n" ++
+         replicate pad ' ' ++ " " ++ go (pad + 1) l ++ "\n" ++
+         replicate pad ' ' ++ " " ++ go (pad + 1) r -- ++ "\n"
 
 insert :: Ord a => a -> Tree a -> Tree a
 insert n Empty = Leaf n
@@ -64,19 +74,38 @@ symmetric Empty = True
 symmetric (Leaf _) = True
 symmetric (Branch _ l r) = sameStructure l (mirrorImage r)
 
-cbbt :: Int -> a -> [Tree a]
-cbbt 0 _ = [Empty]
-cbbt n a
+--cbbt :: a -> Int -> [Tree a]
+--cbbt _ 0 = [Empty]
+--cbbt a 1 = [Leaf a]
+--cbbt a n
+--   | n < 0 = undefined
+--   | otherwise  =
+--      if even (n-1)
+--         then zipWith b (cbbt a half) (cbbt a half)
+--         else zipWith b (dpl htree) (cbbt a (half+r)) ++ zipWith b (cbbt a (half+r)) (dpl htree)
+--      where
+--      b = Branch a
+--      half = div (n-1) 2
+--      r = rem (n-1) 2
+--      htree = cbbt a half
+--      dpl [] = []
+--      dpl (x:xs) = x : x : dpl xs
+
+cbbt' :: a -> Int -> [Tree a]
+cbbt' _ 0 = [Empty]
+cbbt' a 1 = [Leaf a]
+cbbt' a n
    | n < 0 = undefined
-   | otherwise  =
-      if even (n-1)
-         then zipWith b (cbbt half a) (cbbt half a)
-         else zipWith b (htree ++ htree) (cbbt (half+r) a) ++ zipWith b (cbbt (half+r) a) (htree ++ htree)
-      where
-      b = Branch a
-      half = div (n-1) 2
-      r = rem (n-1) 2
-      htree = cbbt half a
+   | even n = original_even -- ++ map mirrorImage (filter (not . symmetric) original_even)
+   | otherwise = original_odd -- ++ map mirrorImage (filter (not . symmetric) original_odd)
+   where
+   original_even = [b x y | x <-cbbt' a (half+1), y<-cbbt' a half] ++
+      [b y x | x <-cbbt' a (half+1), y<-cbbt' a half]
+   original_odd = [b x y | x <-cbbt' a half, y<-cbbt' a half]
+   half = (n-1) `div` 2
+   b Empty Empty = Leaf a
+   b l r = Branch a l r
+
 
 -- 6 Problem 58
 --
@@ -99,7 +128,9 @@ cbbt n a
 -- Empty) (Branch 'x' Empty (Branch 'x' Empty Empty))]
 
 symCbalTrees :: a -> Int -> [Tree a]
-symCbalTrees a = filter symmetric . flip cbbt a
+symCbalTrees a = filter symmetric . cbbt' a
+
+{-
 
 -- 7 Problem 59
 --
@@ -123,31 +154,65 @@ symCbalTrees a = filter symmetric . flip cbbt a
 -- Example in Haskell:
 --
 -- *Main> take 4 $ hbalTree 'x' 3
--- [Branch 'x' (Branch 'x' Empty Empty) (Branch 'x' Empty (Branch 'x' Empty
--- Empty)),
---  Branch 'x' (Branch 'x' Empty Empty) (Branch 'x' (Branch 'x' Empty Empty)
---  Empty),
---   Branch 'x' (Branch 'x' Empty Empty) (Branch 'x' (Branch 'x' Empty Empty)
---   (Branch 'x' Empty Empty)),
---    Branch 'x' (Branch 'x' Empty (Branch 'x' Empty Empty)) (Branch 'x' Empty
---    Empty)]
+-- [Branch 'x'
+--    (Branch 'x' Empty Empty)
+--    (Branch 'x' Empty 
+--                (Branch 'x' Empty Empty)),
+-- Branch 'x' (Branch 'x' Empty Empty) (Branch 'x' (Branch 'x' Empty Empty)
+-- Empty),
+-- Branch 'x' (Branch 'x' Empty Empty) (Branch 'x' (Branch 'x' Empty Empty)
+-- (Branch 'x' Empty Empty)),
+-- Branch 'x' (Branch 'x' Empty (Branch 'x' Empty Empty)) (Branch 'x' Empty
+-- Empty)]
 --
 --    Solutions 
 
+toLeaf :: Tree a -> Tree a
+toLeaf (Branch x Empty Empty) = Leaf x
+toLeaf x = x
+
 hbalTree :: a -> Int -> [Tree a]
 hbalTree _ 0 = [Empty]
-hbalTree a 1 = [Leaf a]
-hbalTree a n = 
-   if even (n-1)
-      then zipWith b (hbalTree a half) (hbalTree a half)
-      else zipWith b (htree ++ htree) (hbalTree a (half+r)) ++ zipWith b (hbalTree a (half+r)) (htree ++ htree)
+--hbalTree a 1 = [Leaf a, Empty]
+hbalTree a h 
+   | h < 0 = [Empty]
+   | otherwise = filter isHbalTree $ map toLeaf $
+   Prelude.concatMap (\x ->
+      zipWith b (hbalTree a x) (hbalTree a x))
+      [h-1] ++
+   Prelude.concatMap (\x->
+      zipWith b (hbalTree a x) (hbalTree a (x-1)))
+      [h-1] ++
+   Prelude.concatMap (\x->
+      zipWith b (hbalTree a x) (hbalTree a (x+1)))
+      [0..(h-2)]
    where
    b = Branch a
-   half = div (n-1) 2
-   r = rem (n-1) 2
-   htree = cbbt half a
 
-main :: IO ()
-main = putStrLn "Hello, World!"
+-- x - y =1 => y = x - 1
+-- x - y = (-1) => y = x + 1
+
+
+--hbalTree a n = 
+--   if even (n-1)
+--      then zipWith b (hbalTree a half) (hbalTree a half)
+--      else zipWith b (htree ++ htree) (hbalTree a (half+r)) ++ zipWith b (hbalTree a (half+r)) (htree ++ htree)
+--   where
+--   b = Branch a
+--   half = div (n-1) 2
+--   r = rem (n-1) 2
+--   htree = cbbt half a
+
+height :: Tree a -> Int
+height Empty = 0
+height (Leaf _) = 1
+height (Branch _ l r) = 1 + max (height l) (height r)
+
+isHbalTree :: Tree a -> Bool
+isHbalTree Empty = True
+isHbalTree (Leaf _) = True
+isHbalTree (Branch _ l r) = isHbalTree l && isHbalTree r && (abs (height l - height r) <= 1)
+
+-}
 
 -- vim: expandtab
