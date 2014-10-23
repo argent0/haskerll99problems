@@ -1,4 +1,90 @@
 module Trees where
+
+import Data.Foldable
+
+data Tree a = Empty | Leaf a | Branch a (Tree a) (Tree a)
+
+instance Foldable Tree  where
+   foldr _ z Empty = z
+   foldr f z (Leaf x) = f x z
+   foldr f z (Branch k l r) = Data.Foldable.foldr f (f k (Data.Foldable.foldr f z r)) l
+
+instance Show a => Show (Tree a) where
+   show t = "\n" ++ go 0 t
+      where
+      go pad Empty = replicate pad ' ' ++ "Empty"
+      go pad (Leaf v) = replicate pad ' ' ++ "Leaf  " ++ show v
+      go pad (Branch v l r) =
+         replicate pad ' ' ++ "Branch  " ++ show v ++ "\n" ++
+         replicate pad ' ' ++ " " ++ go (pad + 1) l ++ "\n" ++
+         replicate pad ' ' ++ " " ++ go (pad + 1) r -- ++ "\n"
+
+-- 3 Problem 55
+--
+-- (**) Construct completely balanced binary trees
+--
+-- In a completely balanced binary tree, the following property holds for every
+-- node: The number of nodes in its left subtree and the number of nodes in its
+-- right subtree are almost equal, which means their difference is not greater
+-- than one.
+--
+-- Write a function cbal-tree to construct completely balanced binary trees for
+-- a given number of nodes. The predicate should generate all solutions via
+-- backtracking. Put the letter 'x' as information into all nodes of the tree.
+--
+
+cbbt' :: a -> Int -> [Tree a]
+cbbt' _ 0 = [Empty]
+cbbt' a 1 = [Leaf a]
+cbbt' a n
+   | n < 0 = undefined
+   | even n = original_even -- ++ map mirrorImage (filter (not . symmetric) original_even)
+   | otherwise = original_odd -- ++ map mirrorImage (filter (not . symmetric) original_odd)
+   where
+   original_even = [b x y | x <-cbbt' a (half+1), y<-cbbt' a half] ++
+      [b y x | x <-cbbt' a (half+1), y<-cbbt' a half]
+   original_odd = [b x y | x <-cbbt' a half, y<-cbbt' a half]
+   half = (n-1) `div` 2
+   b Empty Empty = Leaf a
+   b l r = Branch a l r
+
+
+
+--  4 Problem 56
+--
+--  (**) Symmetric binary trees
+--
+--  Let us call a binary tree symmetric if you can draw a vertical line through
+--  the root node and then the right subtree is the mirror image of the left
+--  subtree. Write a predicate symmetric/1 to check whether a given binary tree
+--  is symmetric. Hint: Write a predicate mirror/2 first to check whether one
+--  tree is the mirror image of another. We are only interested in the
+--  structure, not in the contents of the nodes.
+--
+--  Example in Haskell:
+--
+--  *Main> symmetric (Branch 'x' (Branch 'x' Empty Empty) Empty)
+--  False
+--  *Main> symmetric (Branch 'x' (Branch 'x' Empty Empty) (Branch 'x' Empty
+--  Empty))
+--  True
+
+sameStructure :: Tree a -> Tree a -> Bool
+sameStructure Empty Empty = True
+sameStructure (Leaf _) (Leaf _) = True
+sameStructure (Branch _ l r) (Branch _ ll rr) = sameStructure l ll && sameStructure r rr
+sameStructure _ _ = False
+
+mirrorImage :: Tree a -> Tree a
+mirrorImage Empty = Empty
+mirrorImage (Leaf a) = Leaf a
+mirrorImage (Branch v l r) = Branch v (mirrorImage r) (mirrorImage l)
+
+symmetric :: Tree a -> Bool
+symmetric Empty = True
+symmetric (Leaf _) = True
+symmetric (Branch _ l r) = sameStructure l (mirrorImage r)
+
 -- 5 Problem 57
 -- (**) Binary search trees (dictionaries)
 --
@@ -27,40 +113,6 @@ module Trees where
 -- *Main> symmetric . construct $ [3, 2, 5, 7, 1]
 -- True
 
-import Data.Foldable
-
-data Tree a = Empty | Leaf a | Branch a (Tree a) (Tree a)
-
-instance Foldable Tree  where
-   foldr _ z Empty = z
-   foldr f z (Leaf x) = f x z
-   foldr f z (Branch k l r) = Data.Foldable.foldr f (f k (Data.Foldable.foldr f z r)) l
-
-instance Show a => Show (Tree a) where
-   show t = "\n" ++ go 0 t
-      where
-      go pad Empty = replicate pad ' ' ++ "Empty"
-      go pad (Leaf v) = replicate pad ' ' ++ "Leaf  " ++ show v
-      go pad (Branch v l r) =
-         replicate pad ' ' ++ "Branch  " ++ show v ++ "\n" ++
-         replicate pad ' ' ++ " " ++ go (pad + 1) l ++ "\n" ++
-         replicate pad ' ' ++ " " ++ go (pad + 1) r -- ++ "\n"
-
-cbbt' :: a -> Int -> [Tree a]
-cbbt' _ 0 = [Empty]
-cbbt' a 1 = [Leaf a]
-cbbt' a n
-   | n < 0 = undefined
-   | even n = original_even -- ++ map mirrorImage (filter (not . symmetric) original_even)
-   | otherwise = original_odd -- ++ map mirrorImage (filter (not . symmetric) original_odd)
-   where
-   original_even = [b x y | x <-cbbt' a (half+1), y<-cbbt' a half] ++
-      [b y x | x <-cbbt' a (half+1), y<-cbbt' a half]
-   original_odd = [b x y | x <-cbbt' a half, y<-cbbt' a half]
-   half = (n-1) `div` 2
-   b Empty Empty = Leaf a
-   b l r = Branch a l r
-
 insert :: Ord a => a -> Tree a -> Tree a
 insert n Empty = Leaf n
 insert n (Leaf o)
@@ -72,22 +124,6 @@ insert n (Branch o l r)
 
 insertList :: Ord a => [a] -> Tree a -> Tree a
 insertList l t = Prelude.foldl (flip insert) t l
-
-sameStructure :: Tree a -> Tree a -> Bool
-sameStructure Empty Empty = True
-sameStructure (Leaf _) (Leaf _) = True
-sameStructure (Branch _ l r) (Branch _ ll rr) = sameStructure l ll && sameStructure r rr
-sameStructure _ _ = False
-
-mirrorImage :: Tree a -> Tree a
-mirrorImage Empty = Empty
-mirrorImage (Leaf a) = Leaf a
-mirrorImage (Branch v l r) = Branch v (mirrorImage r) (mirrorImage l)
-
-symmetric :: Tree a -> Bool
-symmetric Empty = True
-symmetric (Leaf _) = True
-symmetric (Branch _ l r) = sameStructure l (mirrorImage r)
 
 -- 6 Problem 58
 --
@@ -263,5 +299,47 @@ hbalTrees k n =
    filter (\x -> nodes x == n) $ Data.Foldable.concat $ map (hbalTree k) [0..mh]
    where
    mh = maxHeight n
+
+--  2 Problem 61
+--
+--  Count the leaves of a binary tree
+--
+--  A leaf is a node with no successors. Write a predicate count_leaves/2 to
+--  count them.
+--
+--  Example:
+--
+--  % count_leaves(T,N) :- the binary tree T has N leaves
+--
+--  Example in Haskell:
+--
+--  > countLeaves tree4
+--  2
+
+countLeaves :: Ord k => Tree k -> Int
+countLeaves Empty = 0
+countLeaves (Leaf _) = 1
+countLeaves (Branch _ l r) = countLeaves l + countLeaves r
+
+--  3 Problem 61A
+--
+--  Collect the leaves of a binary tree in a list
+--
+--  A leaf is a node with no successors. Write a predicate leaves/2 to collect
+--  them in a list.
+--
+--  Example:
+--
+--  % leaves(T,S) :- S is the list of all leaves of the binary tree T
+--
+--  Example in Haskell:
+--
+--  > leaves tree4
+--  [4,2]
+
+leaves :: Ord k => Tree k -> [k]
+leaves Empty = []
+leaves (Leaf x) = [x]
+leaves (Branch _ l r) = leaves l ++ leaves r
 
 -- vim: expandtab
