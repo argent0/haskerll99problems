@@ -9,6 +9,11 @@ instance Foldable Tree  where
    foldr f z (Leaf x) = f x z
    foldr f z (Branch k l r) = Data.Foldable.foldr f (f k (Data.Foldable.foldr f z r)) l
 
+instance Functor Tree where
+   fmap _ Empty = Empty
+   fmap f (Leaf x) = Leaf (f x)
+   fmap f (Branch x l r) = Branch (f x) (fmap f l) (fmap f r)
+
 instance Show a => Show (Tree a) where
    show t = "\n" ++ go 0 t
       where
@@ -341,5 +346,142 @@ leaves :: Ord k => Tree k -> [k]
 leaves Empty = []
 leaves (Leaf x) = [x]
 leaves (Branch _ l r) = leaves l ++ leaves r
+
+--  4 Problem 62
+--
+--  Collect the internal nodes of a binary tree in a list
+--
+--  An internal node of a binary tree has either one or two non-empty
+--  successors. Write a predicate internals/2 to collect them in a list.
+--
+--  Example:
+--
+--  % internals(T,S) :- S is the list of internal nodes of the binary tree T.
+--
+--  Example in Haskell:
+--
+--  Prelude>internals tree4
+--  Prelude>[1,2]
+
+internals :: Ord k => Tree k -> [k]
+internals Empty = []
+internals (Leaf _) = []
+internals (Branch x l r) = internals l ++ [x] ++ internals r
+
+--  5 Problem 62B
+--
+--  Collect the nodes at a given level in a list
+--
+--  A node of a binary tree is at level N if the path from the root to the node
+--  has length N-1. The root node is at level 1. Write a predicate atlevel/3 to
+--  collect all nodes at a given level in a list.
+--
+--  Example:
+--
+--  % atlevel(T,L,S) :- S is the list of nodes of the binary tree T at level L
+--
+--  Example in Haskell:
+--
+--  Prelude>atLevel tree4 2
+--  Prelude>[2,2]
+
+atLevel :: Ord k => Tree k -> Int -> [k]
+atLevel = go
+   where
+   go _ 0 = []
+   go Empty _ = []
+   go (Leaf x) 1 = [x]
+   go (Leaf _) _ = []
+   go (Branch x _ _) 1 = [x]
+   go (Branch _ l r) lv = go l (lv-1) ++ go r (lv - 1)
+
+--  6 Problem 63
+--
+--  Construct a complete binary tree
+--
+--  A complete binary tree with height H is defined as follows:
+--
+--  The levels 1,2,3,...,H-1 contain the maximum number of nodes (i.e
+--  2**(i-1) at the level i)
+--  In level H, which may contain less than the maximum possible number
+--  of nodes, all the nodes are "left-adjusted". This means that in a
+--  levelorder tree traversal all internal nodes come first, the leaves
+--  come second, and empty successors (the nil's which are not really
+--  nodes!) come last. 
+--
+--  Particularly, complete binary trees are used as data structures (or
+--  addressing schemes) for heaps.
+--
+--  We can assign an address number to each node in a complete binary
+--  tree by enumerating the nodes in level-order, starting at the root
+--  with number 1. For every node X with address A the following
+--  property holds: The address of X's left and right successors are 2*A
+--  and 2*A+1, respectively, if they exist. This fact can be used to
+--  elegantly construct a complete binary tree structure.
+--
+--  Write a predicate complete_binary_tree/2.
+--
+--  Example:
+--
+--  % complete_binary_tree(N,T) :- T is a complete binary tree with N
+--  nodes.
+--
+--  Example in Haskell:
+--
+--  Main> completeBinaryTree 4
+--  Branch 'x' (Branch 'x' (Branch 'x' Empty Empty) Empty) (Branch 'x'
+--  Empty Empty)
+--   
+--   Main> isCompleteBinaryTree $ Branch 'x' (Branch 'x' Empty Empty)
+--   (Branch 'x' Empty Empty)
+--   True
+
+completeBinaryTree :: Ord k => k -> Int -> Tree k
+completeBinaryTree _ 0 = Empty
+completeBinaryTree k 1 = Leaf k
+completeBinaryTree k n = Branch k (completeBinaryTree k (half + r)) (completeBinaryTree k half)
+   where
+   half = (n-1) `div` 2
+   r = rem (n-1) 2
+--  7 Problem 64
+--
+--  Given a binary tree as the usual Prolog term t(X,L,R) (or nil). As a
+--  preparation for drawing the tree, a layout algorithm is required to
+--  determine the position of each node in a rectangular grid. Several layout
+--  methods are conceivable, one of them is shown in the illustration below:
+--
+--  p64.gif
+--
+--  In this layout strategy, the position of a node v is obtained by the
+--  following two rules:
+--
+--  x(v) is equal to the position of the node v in the inorder sequence
+--  y(v) is equal to the depth of the node v in the tree 
+--
+--  Write a function to annotate each node of the tree with a position,
+--  where (1,1) in the top left corner or the rectangle bounding the
+--  drawn tree.
+--
+--  Example in Haskell:
+--
+--  > layout tree64
+--  Branch ('n',(8,1)) (Branch ('k',(6,2)) (Branch ('c',(2,3)) ...
+
+layout' :: Ord k => Tree k -> Tree (k,(Int,Int))
+layout' = go 0 0
+   where
+   go _ _ Empty = Empty
+   go ox oy (Leaf x) = Leaf (x,(ox,oy))
+   go ox oy (Branch x l r) = Branch (x,(ox,oy)) nl nr
+      where
+      nl = go (ox-1) (oy+1) l
+      nr = go (ox+1) (oy+1) r
+
+layout :: Ord k => Tree k -> Tree (k,(Int,Int))
+layout t = fmap (translate minX) lo
+   where
+   lo = layout' t
+   minX = Data.Foldable.minimum $ fmap (\(_,(x,_)) -> x) lo
+   translate d (k, (x,y)) = (k, (x-d,y))
 
 -- vim: expandtab
