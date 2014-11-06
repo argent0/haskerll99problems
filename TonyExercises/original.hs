@@ -1,3 +1,5 @@
+-- SRC:
+-- http://tonymorris.github.io/blog//posts/20-intermediate-haskell-exercises/
 module Main where
 
 class Fluffy f where
